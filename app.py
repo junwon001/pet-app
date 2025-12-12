@@ -50,3 +50,11 @@ def predict(req: PredictRequest):
         "bcs": bcs_value,
         "raw_result": result
     }
+
+from recommend.recommend_service import recommend_feed_by_bcs
+
+@app.get("/recommend/{pet_id}")
+def recommend(pet_id: int):
+    return recommend_feed_by_bcs(pet_id)
+
+

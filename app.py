@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from obesity_model import predict_obesity  # 너가 만든 함수 그대로 import!
+from obesity_model import predict_obesity
+
+from bcs_repository import save_bcs
+from utils import extract_bcs_number   # 정규식 함수
 
 app = FastAPI(title="Pet Obesity AI API")
 
@@ -20,6 +23,7 @@ class PredictRequest(BaseModel):
 
 @app.post("/predict")
 def predict(req: PredictRequest):
+    # 1️⃣ BCS 예측
     result = predict_obesity(
         weight=req.weight,
         age=req.age,
@@ -34,4 +38,15 @@ def predict(req: PredictRequest):
         snack_amount=req.snack_amount,
         food_count=req.food_count
     )
-    return {"result": result}
+
+    # 2️⃣ BCS 숫자만 추출
+    bcs_value = extract_bcs_number(result)
+
+    # 3️⃣ DB 저장 (일단 pet_id는 1로)
+    save_bcs(pet_id=1, bcs_value=bcs_value)
+
+    # 4️⃣ 응답
+    return {
+        "bcs": bcs_value,
+        "raw_result": result
+    }
